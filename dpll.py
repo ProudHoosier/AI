@@ -1,43 +1,45 @@
 from copy import deepcopy
 from itertools import chain
 
+## This module uses dpll algorithm to find out if a given logical statement is solvable.
 class Solver:
+	'''Initialize the solver instance with cluases in Conjunctive normal form.
+	Collect all the atomic symbols from these clauses
+	'''
 	def __init__(self, cnf):
 		self.clauses = cnf
 		merged_clauses = list(chain(*self.clauses))
 		self.symbolsbols = set([c for c in merged_clauses if c > 0])|set([abs(c) for c in merged_clauses if c < 0])
 
 	def solve(self):	
-		return self.dpll(self.clauses,self.symbolsbols)
+		return self.dpll(self.clauses, self.symbolsbols)
 
-		
+	# Method which performs reductions based on unit clause and positive literals.	
 	def reduce(self, var, temp):
-		#print("Within reduce",temp)
 		tempclauses = deepcopy(temp)
 		
-		for c in temp:
+		for clause in temp:
 			if var in c:
-				tempclauses.remove(c)
+				tempclauses.remove(clause)
 			if -var in c:
-				tempclauses[tempclauses.index(c)].remove(-var)
+				tempclauses[tempclauses.index(clause)].remove(-var)
 
 		return tempclauses
 
 	
 	def dpll(self, clauses, symbols):
-		for c in clauses:
-			if len(c) == 1:
-				P = list(c)[0]
-				#print ("p is:",P)
+		for clause in clauses:
+			if len(clause) == 1:
+				literal = list(clause)[0]
 				alpha = clauses[:]
 				s = symbols.copy()
-				for c in clauses:
-					if P in c:
-						alpha.remove(c)
-					if -P in c:
-						alpha[alpha.index(c)].remove(-P)
-				if abs(P) in symbols:
-					s.remove(abs(P))					
+				for clause in clauses:
+					if literal in clause:
+						alpha.remove(clause)
+					if -literal in clause:
+						alpha[alpha.index(clause)].remove(-P)
+				if abs(literal) in symbols:
+					s.remove(abs(literal))					
 				 
 				symbols = s
 				clauses = alpha
@@ -72,7 +74,7 @@ class Solver:
 		
 		literals.remove(abs(uvar))
 
-		reduced1 = self.reduce(uvar,clauses)
-		reduced2 = self.reduce(-uvar,newclauses)
+		reduced1 = self.reduce(uvar, clauses)
+		reduced2 = self.reduce(-uvar, newclauses)
 		
 		return self.dpll(reduced1, literals) or self.dpll(reduced2, literals)
